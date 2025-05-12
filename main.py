@@ -42,6 +42,11 @@ while running:
 
     #call player
     playerX += playerX_change
+    #line of boundary
+    if playerX <= 0:
+        playerX = 0
+    elif playerX >= 1216:
+        playerX = 1216
     player(playerX, playerY)  # Draw the player every frame
     pygame.display.update()   # Update the screen every frame
 
