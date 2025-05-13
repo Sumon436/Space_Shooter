@@ -4,7 +4,7 @@ import sys
 
 pygame.init()
 
-# Set up the display
+# Set  display
 screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Space Shooter")
 
@@ -32,10 +32,19 @@ enemyY_change = 10
 
 def enemy(x,y):
     screen.blit(enemyImg,(x,y))
+    
+#bg varible
+bg = pygame.image.load('gallery/background.jpg')
+def back():
+    screen.blit(bg,(0,0))
+
 # Main loop
 running = True
 while running:
+    #screen color
     screen.fill((0, 0, 0))
+    #bg color
+    back()
     
  # Move the player
 
@@ -54,12 +63,14 @@ while running:
 
     #call player
     playerX += playerX_change
+
     #line of boundary
     if playerX <= 0:
         paylerX = 0
     elif playerX >= 1216:
         playerX = 1216
-    player(playerX, playerY)  # Draw the player every frame
+    player(playerX, playerY)  
+
     #enemy call
     
     if enemyX <= 0:
@@ -71,7 +82,7 @@ while running:
     
     enemyX += enemyX_change
     enemy(enemyX,enemyY)
-    pygame.display.update()   # Update the screen every frame
+    pygame.display.update()   
 
 pygame.quit()
 sys.exit()
