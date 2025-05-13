@@ -1,4 +1,5 @@
 import pygame
+import random
 import sys
 
 pygame.init()
@@ -20,6 +21,14 @@ playerX_change = 0
 def player(x, y):
     screen.blit(playerImg,(x, y))
 
+
+#enmey
+enemyImg = pygame.image.load('gallery/enemy.png')
+enemyX = random.randint(0,1216)
+enemyY = random.randint(100,150)
+
+def enemy(x,y):
+    screen.blit(enemyImg,(x,y))
 # Main loop
 running = True
 while running:
@@ -48,6 +57,7 @@ while running:
     elif playerX >= 1216:
         playerX = 1216
     player(playerX, playerY)  # Draw the player every frame
+    enemy(enemyX,enemyY)
     pygame.display.update()   # Update the screen every frame
 
 pygame.quit()
