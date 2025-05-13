@@ -26,6 +26,9 @@ def player(x, y):
 enemyImg = pygame.image.load('gallery/enemy.png')
 enemyX = random.randint(0,1216)
 enemyY = random.randint(100,150)
+enemyX_change = 0.4
+enemyY_change = 10
+
 
 def enemy(x,y):
     screen.blit(enemyImg,(x,y))
@@ -53,10 +56,20 @@ while running:
     playerX += playerX_change
     #line of boundary
     if playerX <= 0:
-        playerX = 0
+        paylerX = 0
     elif playerX >= 1216:
         playerX = 1216
     player(playerX, playerY)  # Draw the player every frame
+    #enemy call
+    
+    if enemyX <= 0:
+           enemyX_change = 0.4
+           enemyY += enemyY_change
+    elif enemyX >= 1216:
+         enemyX_change -= 0.4
+         enemyY += enemyY_change
+    
+    enemyX += enemyX_change
     enemy(enemyX,enemyY)
     pygame.display.update()   # Update the screen every frame
 
