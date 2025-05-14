@@ -64,8 +64,8 @@ for i in range(num_enemy):
  enemyImg.append(pygame.image.load('gallery/enemy.png'))
  enemyX.append(random.randint(0, 1216))
  enemyY.append(random.randint(100, 150))
- enemyX_change.append(0.4)
- enemyY_change.append(10)
+ enemyX_change.append(4)
+ enemyY_change.append(50)
 
 def enemy(x, y,i):
     screen.blit(enemyImg[i], (x, y))
@@ -78,6 +78,13 @@ def isCollision(enemyX,enemyY,bulletX,bulletY,i):
     else:
         return False
 
+#game over
+gameoverX = 550
+gameoverY = 370
+font = pygame.font.Font("freesansbold.ttf",50)
+def game_over(gameoverX,gameoverY):
+    gameOverShow = font.render("GAME OVER",True,(255,99,71))
+    screen.blit(gameOverShow,(gameoverX,gameoverY))
 
 # Game loop
 running = True
@@ -130,6 +137,12 @@ while running:
         enemyX[i] = random.randint(0, 1216)
         enemyY[i] = random.randint(100, 150)
         score += 1
+
+      if enemyY[i] > 550:
+          for j in range(num_enemy):
+              enemyY[j] = 2000
+          game_over(gameoverX,gameoverY)
+          break
         
      #enemy call
       enemyX[i] += enemyX_change[i]
