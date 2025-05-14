@@ -1,7 +1,8 @@
-import pygame
 import random
 import math
 import sys
+import pygame
+from pygame import mixer
 
 pygame.init()
 
@@ -22,10 +23,15 @@ def score_f(score_x,score_y):
 icon = pygame.image.load('gallery/galaxy.png')
 pygame.display.set_icon(icon)
 
+
 # Background
 bg = pygame.image.load('gallery/background.jpg')
 def back():
     screen.blit(bg, (0, 0))
+
+# Sound
+mixer.music.load("gallery/background.wav")
+mixer.music.play(-1)
 
 # Player
 playerImg = pygame.image.load('gallery/player.png')
@@ -64,8 +70,8 @@ for i in range(num_enemy):
  enemyImg.append(pygame.image.load('gallery/enemy.png'))
  enemyX.append(random.randint(0, 1216))
  enemyY.append(random.randint(100, 150))
- enemyX_change.append(4)
- enemyY_change.append(50)
+ enemyX_change.append(2)
+ enemyY_change.append(30)
 
 def enemy(x, y,i):
     screen.blit(enemyImg[i], (x, y))
@@ -104,6 +110,8 @@ while running:
                 playerX_change = -0.3
             if event.key == pygame.K_l:
                 if bullet_state == "ready":
+                    bulletSound = mixer.Sound("gallery/laser.wav")
+                    bulletSound.play()
                     bulletX = playerX
                     bullet_fire(bulletX, bulletY)
 
@@ -132,6 +140,9 @@ while running:
       #collision
       collision = isCollision(enemyX,enemyY,bulletX,bulletY,i)
       if collision:
+        
+        explosionSound = mixer.Sound("gallery/explosion.wav")
+        explosionSound.play()
         bulletY = 600
         bullet_state = "ready"
         enemyX[i] = random.randint(0, 1216)
@@ -167,3 +178,5 @@ while running:
 
 pygame.quit()
 sys.exit()
+
+
