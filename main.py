@@ -19,7 +19,18 @@ playerY = 600
 playerX_change = 0
 
 def player(x, y):
-    screen.blit(playerImg,(x, y))
+    screen.blit(playerImg,(x-16, y+10))
+#add bullet
+bulletImg = pygame.image.load('gallery/bullet.png')
+bulletX = 0
+bulletY = 600
+bulletY_change = 10
+bullet_state = "ready"
+
+def bullet_fire(x,y):
+    global bullet_state
+    bullet_state = "fire"
+    screen.blit(bulletImg,(x,y))
 
 
 #enmey
@@ -57,6 +68,8 @@ while running:
                 playerX_change +=0.3
             if event.key == pygame.K_a:
                  playerX_change -=0.3
+            if event.key == pygame.K_l:
+                bullet_fire(playerX,bulletY)
         if event.type == pygame.KEYUP:
              if event.key == pygame.K_a or event.key == pygame.K_d:
                 playerX_change = 0
