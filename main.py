@@ -31,7 +31,7 @@ def player(x, y):
 bulletImg = pygame.image.load('gallery/bullet.png')
 bulletX = 0
 bulletY = 600
-bulletY_change = 1
+bulletY_change = 2
 bullet_state = "ready"
 
 
@@ -43,19 +43,27 @@ def bullet_fire(x, y):
     screen.blit(bulletImg, (x , y))
 
 
-# Enemy
-enemyImg = pygame.image.load('gallery/enemy.png')
-enemyX = random.randint(0, 1216)
-enemyY = random.randint(100, 150)
-enemyX_change = 0.4
-enemyY_change = 10
+#enemy
+enemyImg =[]
+enemyX = []
+enemyY = []
+enemyX_change = []
+enemyY_change = []
 
-def enemy(x, y):
-    screen.blit(enemyImg, (x, y))
+num_enemy = 7
+for i in range(num_enemy):
+ enemyImg.append(pygame.image.load('gallery/enemy.png'))
+ enemyX.append(random.randint(0, 1216))
+ enemyY.append(random.randint(100, 150))
+ enemyX_change.append(0.4)
+ enemyY_change.append(10)
+
+def enemy(x, y,i):
+    screen.blit(enemyImg[i], (x, y))
 
 #collision detection
-def isCollision(enemyX,enemyY,bulletX,bulletY):
-    distance = math.sqrt((math.pow(enemyX-bulletX,2))+(math.pow(enemyY-bulletY,2)))
+def isCollision(enemyX,enemyY,bulletX,bulletY,i):
+    distance = math.sqrt((math.pow(enemyX[i]-bulletX,2))+(math.pow(enemyY[i]-bulletY,2)))
     if distance < 27:
         return True
     else:
@@ -96,25 +104,30 @@ while running:
 
     player(playerX, playerY)
 
-    # Enemy movement
-    enemyX += enemyX_change
-    if enemyX <= 0:
-        enemyX_change = 0.4
-        enemyY += enemyY_change
-    elif enemyX >= 1216:
-        enemyX_change = -0.4
-        enemyY += enemyY_change
-    enemy(enemyX, enemyY)
 
-    #collision
-    collision = isCollision(enemyX,enemyY,bulletX,bulletY)
-    if collision:
+    #enemy movement
+    for i in range(num_enemy):
+      if enemyX[i] <= 0:
+        enemyX_change[i] = 0.4
+        enemyY[i] += enemyY_change[i]
+      elif enemyX[i] >= 1216:
+        enemyX_change[i] = -0.4
+        enemyY[i] += enemyY_change[i]
+      #collision
+      collision = isCollision(enemyX,enemyY,bulletX,bulletY,i)
+      if collision:
         bulletY = 600
         bullet_state = "ready"
-        enemyX = random.randint(0, 1216)
-        enemyY = random.randint(100, 150)
+        enemyX[i] = random.randint(0, 1216)
+        enemyY[i] = random.randint(100, 150)
         score += 1
         print(score)
+     #enemy call
+      enemyX[i] += enemyX_change[i]
+      enemy(enemyX[i], enemyY[i],i)
+
+    
+    
 
 
     # Bullet movement
