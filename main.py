@@ -9,6 +9,15 @@ pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Space Shooter")
 
+#score
+score = 0
+font = pygame.font.Font("freesansbold.ttf",32)
+score_x = 10
+score_y = 10
+def score_f(score_x,score_y):
+    score_show = font.render("Score: "+str(score),True,(255,255,255))
+    screen.blit(score_show,(score_x,score_y))
+
 # Icon
 icon = pygame.image.load('gallery/galaxy.png')
 pygame.display.set_icon(icon)
@@ -35,7 +44,7 @@ bulletY_change = 2
 bullet_state = "ready"
 
 
-score = 0
+
 
 def bullet_fire(x, y):
     global bullet_state
@@ -121,10 +130,13 @@ while running:
         enemyX[i] = random.randint(0, 1216)
         enemyY[i] = random.randint(100, 150)
         score += 1
-        print(score)
+        
      #enemy call
       enemyX[i] += enemyX_change[i]
       enemy(enemyX[i], enemyY[i],i)
+
+    #score call
+      score_f(score_x,score_y)
 
     
     
