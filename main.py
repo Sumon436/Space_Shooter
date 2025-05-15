@@ -77,8 +77,8 @@ def enemy(x, y, i):
     screen.blit(enemyImg[i], (x, y))
 
 def isCollision(enemyX, enemyY, bulletX, bulletY, i):
-    distance = math.sqrt((math.pow(enemyX[i] - bulletX, 2)) + (math.pow(enemyY[i] - bulletY, 2)))
-    return distance < 27
+    distance = math.sqrt((enemyX[i] - bulletX) ** 2 + (enemyY[i] - bulletY) ** 2)
+    return distance < 35  # Increased for more accurate hit detection
 
 # Game Over
 font_big = pygame.font.Font("freesansbold.ttf", 50)
@@ -89,6 +89,7 @@ def game_over():
 # Game loop
 running = True
 game_ended = False
+use_auto_fire = True  # AI feature: auto fire
 
 while running:
     screen.fill((0, 0, 0))
@@ -104,13 +105,6 @@ while running:
                     playerX_change = 0.4
                 if event.key == pygame.K_a:
                     playerX_change = -0.4
-                if event.key == pygame.K_l:
-                    if bullet_state == "ready":
-                        bulletSound = mixer.Sound("gallery/laser.wav")
-                        bulletSound.play()
-                        bulletX = playerX
-                        bullet_fire(bulletX, bulletY)
-
             if event.type == pygame.KEYUP:
                 if event.key in (pygame.K_d, pygame.K_a):
                     playerX_change = 0
@@ -119,6 +113,16 @@ while running:
         playerX += playerX_change
         playerX = max(0, min(playerX, 1216))
         player(playerX, playerY)
+
+        # Auto fire when aligned with any enemy
+        if use_auto_fire and bullet_state == "ready":
+            for i in range(num_enemy):
+                if abs(enemyX[i] - playerX) < 30 and 100 < enemyY[i] < playerY:
+                    bulletSound = mixer.Sound("gallery/laser.wav")
+                    bulletSound.play()
+                    bulletX = playerX
+                    bullet_fire(bulletX, bulletY)
+                    break
 
         for i in range(num_enemy):
             if enemyX[i] <= 0:
@@ -164,7 +168,6 @@ while running:
             game_over()
 
     else:
-        #show player game over text
         player(playerX, playerY)
         game_over()
 
