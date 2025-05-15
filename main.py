@@ -20,11 +20,8 @@ font = pygame.font.Font("freesansbold.ttf", 32)
 icon = pygame.image.load('gallery/galaxy.png')
 pygame.display.set_icon(icon)
 bg = pygame.image.load('gallery/background.jpg')
-
-
 def back():
     screen.blit(bg, (0, 0))
-
 
 # Sound
 mixer.music.load("gallery/background.wav")
@@ -57,10 +54,8 @@ explosion_images = [
 explosions = []
 EXPLOSION_DELAY = 10
 
-
 def trigger_explosion(x, y):
     explosions.append({'x': x, 'y': y, 'frame': 0, 'timer': 0})
-
 
 def animate_explosions():
     for explosion in explosions[:]:
@@ -74,17 +69,13 @@ def animate_explosions():
             img = explosion_images[explosion['frame']]
             screen.blit(img, (explosion['x'], explosion['y']))
 
-
 def player(x, y):
-    # Blinking effect when invincible
     if invincible:
-        # Blink by toggling visibility every 5 frames
         if (invincible_timer // 5) % 2 == 0:
             screen.blit(playerImg, (x - 16, y + 10))
     else:
         if player_visible:
             screen.blit(playerImg, (x - 16, y + 10))
-
 
 # Bullet
 bulletImg = pygame.image.load('gallery/bullet.png')
@@ -93,12 +84,10 @@ bulletY = 600
 bulletY_change = 4
 bullet_state = "ready"
 
-
 def bullet_fire(x, y):
     global bullet_state
     bullet_state = "fire"
     screen.blit(bulletImg, (x, y))
-
 
 # Enemy
 enemyImg = []
@@ -114,10 +103,8 @@ for i in range(num_enemy):
     enemyX_change.append(2)
     enemyY_change.append(30)
 
-
 def enemy(x, y, i):
     screen.blit(enemyImg[i], (x, y))
-
 
 # Enemy Bullets
 enemy_bulletImg = pygame.image.load('gallery/enemy_bullet.png')
@@ -126,12 +113,10 @@ enemy_bulletY = [0] * num_enemy
 enemy_bulletY_change = 1
 enemy_bullet_state = ["ready"] * num_enemy
 
-
 def enemy_bullet_fire(x, y, i):
     enemy_bullet_state[i] = "fire"
     enemy_bulletX[i] = x + 16
     enemy_bulletY[i] = y + 32
-
 
 def move_enemy_bullets():
     global player_visible, player_exploding, player_explosion_timer, lives, game_ended, playerX, playerY, invincible
@@ -141,7 +126,6 @@ def move_enemy_bullets():
             enemy_bulletY[i] += enemy_bulletY_change
             if enemy_bulletY[i] > 720:
                 enemy_bullet_state[i] = "ready"
-            # Only hit player if not invincible, not exploding, and player visible
             if abs(enemy_bulletX[i] - playerX) < 30 and abs(enemy_bulletY[i] - playerY) < 40 and not player_exploding and player_visible and not invincible:
                 enemy_bullet_state[i] = "ready"
                 trigger_explosion(playerX - 32, playerY - 32)
@@ -151,19 +135,14 @@ def move_enemy_bullets():
                 player_exploding = True
                 player_explosion_timer = 0
 
-
 def isCollision(enemyX, enemyY, bulletX, bulletY, i):
     distance = math.sqrt((math.pow(enemyX[i] - bulletX, 2)) + (math.pow(enemyY[i] - bulletY, 2)))
     return distance < 27
 
-
 font_big = pygame.font.Font("freesansbold.ttf", 50)
-
-
 def game_over():
     over_text = font_big.render("GAME OVER", True, (255, 99, 71))
     screen.blit(over_text, (500, 370))
-
 
 def show_stats():
     score_text = font.render(f"Score: {score}", True, (255, 255, 255))
@@ -172,7 +151,6 @@ def show_stats():
     screen.blit(score_text, (10, 10))
     screen.blit(lives_text, (10, 50))
     screen.blit(level_text, (10, 90))
-
 
 # Game loop
 running = True
@@ -192,7 +170,9 @@ while running:
 
     if not game_ended:
         keys = pygame.key.get_pressed()
+
         if auto_mode:
+            # Auto-fire when enemy is vertically aligned with player
             if bullet_state == "ready":
                 for i in range(num_enemy):
                     if abs(enemyX[i] - playerX) < 30:
@@ -202,6 +182,8 @@ while running:
                         bulletY = playerY
                         bullet_fire(bulletX, bulletY)
                         break
+
+            # Auto-dodge bullets
             dodge_direction = 0
             for i in range(num_enemy):
                 if enemy_bullet_state[i] == "fire":
@@ -211,18 +193,20 @@ while running:
                         else:
                             dodge_direction -= 1
             if dodge_direction > 0:
-                playerX_change = 0.5
+                playerX_change = 0.5  # move right
             elif dodge_direction < 0:
-                playerX_change = -0.5
+                playerX_change = -0.5  # move left
             else:
                 playerX_change = 0
         else:
+            # Manual movement using A and D keys
             if keys[pygame.K_d]:
                 playerX_change = 0.4
             elif keys[pygame.K_a]:
                 playerX_change = -0.4
             else:
                 playerX_change = 0
+            # Manual fire with K key
             if keys[pygame.K_k] and bullet_state == "ready":
                 bulletSound = mixer.Sound("gallery/laser.wav")
                 bulletSound.play()
@@ -230,14 +214,13 @@ while running:
                 bulletY = playerY
                 bullet_fire(bulletX, bulletY)
 
-        # Explosion animation and player death handling
+        # Player explosion handling
         if player_exploding:
             player_explosion_timer += 1
             if player_explosion_timer >= EXPLOSION_DELAY * len(explosion_images):
                 player_exploding = False
                 lives -= 1
                 if lives > 0:
-                    # Start invincibility after respawn except if no lives left
                     playerX = 640
                     playerY = 600
                     player_visible = True
@@ -246,7 +229,7 @@ while running:
                 else:
                     game_ended = True
 
-        # Handle invincibility timer and end
+        # Invincibility timer
         if invincible:
             invincible_timer += 1
             if invincible_timer >= INVINCIBLE_DURATION:
@@ -279,11 +262,8 @@ while running:
                     for j in range(num_enemy):
                         enemyX_change[j] += 0.5
 
-            # Check if enemy got too low and damage player lives
             if enemyY[i] > 550:
                 lives -= 1
-                enemyY[i] = random.randint(100, 150)
-                enemyX[i] = random.randint(0, 1216)
 
             if enemy_bullet_state[i] == "ready" and random.randint(0, 100) < 1:
                 enemy_bullet_fire(enemyX[i], enemyY[i], i)
