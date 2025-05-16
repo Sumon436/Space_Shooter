@@ -1,39 +1,28 @@
 import random
 import math
-import sys
 import pygame
 from pygame import mixer
 
 pygame.init()
 
-# Set display
+# Screen setup
 screen = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("Space Shooter")
 
-# Constants and Variables
-score = 0
-lives = 3
-level = 1
-LEVEL_UP_SCORE = 20  # Change this to adjust level-up frequency
-
-font = pygame.font.Font("freesansbold.ttf", 32)
-font_big = pygame.font.Font("freesansbold.ttf", 50)
-
-# Icon and Background
+# Load icon and background
 icon = pygame.image.load('gallery/galaxy.png')
 pygame.display.set_icon(icon)
 bg = pygame.image.load('gallery/background.jpg')
-def back():
-    screen.blit(bg, (0, 0))
 
-# Sound
+# Sounds
 mixer.music.load("gallery/background.wav")
 mixer.music.play(-1)
 
-# Game State
-game_state = "menu"  # 'menu', 'running', 'paused', 'gameover'
+# Fonts
+font = pygame.font.Font("freesansbold.ttf", 32)
+font_big = pygame.font.Font("freesansbold.ttf", 50)
 
-# Player
+# Player settings
 playerImg = pygame.image.load('gallery/player.png')
 playerX = 640
 playerY = 600
@@ -47,39 +36,44 @@ invincible = False
 invincible_timer = 0
 INVINCIBLE_DURATION = 120
 
-# Explosion Animation
-explosion_images = [
-    pygame.transform.scale(pygame.image.load(f'gallery/explosion{i}.png'), (128, 128))
-    for i in range(1, 5)
-]
+# Explosion animation frames
+explosion_images = [pygame.transform.scale(pygame.image.load(f'gallery/explosion{i}.png'), (128, 128)) for i in range(1, 5)]
 explosions = []
 EXPLOSION_DELAY = 15
 
-# Bullet
+# Bullet image
 bulletImg = pygame.image.load('gallery/bullet.png')
-bulletX = 0
-bulletY = 600
-bulletY_change = 4
-bullet_state = "ready"
 
-def bullet_fire(x, y):
-    global bullet_state
-    bullet_state = "fire"
-    screen.blit(bulletImg, (x, y))
+class PlayerBullet:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.speed = 8
+        self.visible = True
 
-# Enemy
+    def move(self):
+        self.y -= self.speed
+        if self.y < 0:
+            self.visible = False
+
+    def draw(self, screen):
+        if self.visible:
+            screen.blit(bulletImg, (self.x, self.y))
+
+player_bullets = []
+
+# Enemy settings
 enemyImg = []
 enemyX = []
 enemyY = []
-
+enemyX_change = []
+enemyY_change = []
+num_enemy = 7
 BASE_ENEMY_SPEED = 0.6
 ENEMY_SPEED_INCREMENT = 0.2
 BASE_ENEMY_BULLET_SPEED = 0.6
 ENEMY_BULLET_SPEED_INCREMENT = 0.1
 
-enemyX_change = []
-enemyY_change = []
-num_enemy = 7
 for i in range(num_enemy):
     enemyImg.append(pygame.image.load('gallery/enemy.png'))
     enemyX.append(random.randint(0, 1216))
@@ -90,7 +84,7 @@ for i in range(num_enemy):
 def enemy(x, y, i):
     screen.blit(enemyImg[i], (x, y))
 
-# Enemy Bullets
+# Enemy bullets
 enemy_bulletImg = pygame.image.load('gallery/enemy_bullet.png')
 enemy_bulletX = [0] * num_enemy
 enemy_bulletY = [0] * num_enemy
@@ -103,14 +97,15 @@ def enemy_bullet_fire(x, y, i):
     enemy_bulletY[i] = y + 32
 
 def move_enemy_bullets():
-    global player_visible, player_exploding, player_explosion_timer, lives, game_ended, playerX, playerY, invincible
+    global player_visible, player_exploding, player_explosion_timer, lives, playerX, playerY, invincible
     for i in range(num_enemy):
         if enemy_bullet_state[i] == "fire":
             screen.blit(enemy_bulletImg, (enemy_bulletX[i], enemy_bulletY[i]))
             enemy_bulletY[i] += enemy_bulletY_change
             if enemy_bulletY[i] > 720:
                 enemy_bullet_state[i] = "ready"
-            if abs(enemy_bulletX[i] - playerX) < 30 and abs(enemy_bulletY[i] - playerY) < 40 and not player_exploding and player_visible and not invincible:
+            if (abs(enemy_bulletX[i] - playerX) < 30 and abs(enemy_bulletY[i] - playerY) < 40 and
+                not player_exploding and player_visible and not invincible):
                 enemy_bullet_state[i] = "ready"
                 trigger_explosion(playerX - 32, playerY - 32)
                 explosionSound = mixer.Sound("gallery/explosion.wav")
@@ -119,24 +114,26 @@ def move_enemy_bullets():
                 player_exploding = True
                 player_explosion_timer = 0
 
-def isCollision(enemyX, enemyY, bulletX, bulletY, i):
-    distance = math.sqrt((math.pow(enemyX[i] - bulletX, 2)) + (math.pow(enemyY[i] - bulletY, 2)))
-    return distance < 27
+def isCollision(enemy_x_list, enemy_y_list, bullet_x, bullet_y, enemy_i=None):
+    if enemy_i is not None:
+        distance = math.sqrt((enemy_x_list[enemy_i] - bullet_x)**2 + (enemy_y_list[enemy_i] - bullet_y)**2)
+        return distance < 27
+    else:
+        return False
 
 def trigger_explosion(x, y):
-    explosions.append({'x': x, 'y': y, 'frame': 0, 'timer': 0})
+    explosions.append({"x": x, "y": y, "frame": 0, "timer": 0})
 
 def animate_explosions():
     for explosion in explosions[:]:
-        explosion['timer'] += 1
-        if explosion['timer'] >= EXPLOSION_DELAY:
-            explosion['frame'] += 1
-            explosion['timer'] = 0
-        if explosion['frame'] >= len(explosion_images):
+        explosion["timer"] += 1
+        if explosion["timer"] >= EXPLOSION_DELAY:
+            explosion["frame"] += 1
+            explosion["timer"] = 0
+        if explosion["frame"] >= len(explosion_images):
             explosions.remove(explosion)
         else:
-            img = explosion_images[explosion['frame']]
-            screen.blit(img, (explosion['x'], explosion['y']))
+            screen.blit(explosion_images[explosion["frame"]], (explosion["x"], explosion["y"]))
 
 def player(x, y):
     if invincible:
@@ -178,7 +175,7 @@ def show_pause_menu():
 
 def reset_game():
     global score, lives, level, player_visible, player_exploding, player_explosion_timer
-    global invincible, invincible_timer, playerX, playerY, bullet_state, bulletX, bulletY
+    global invincible, invincible_timer, playerX, playerY, player_bullets
     global enemyX, enemyY, enemyX_change, enemy_bulletY_change, enemy_bullet_state, game_ended
 
     score = 0
@@ -191,9 +188,7 @@ def reset_game():
     invincible_timer = 0
     playerX = 640
     playerY = 600
-    bullet_state = "ready"
-    bulletX = 0
-    bulletY = 600
+    player_bullets = []
 
     for i in range(num_enemy):
         enemyX[i] = random.randint(0, 1216)
@@ -204,14 +199,23 @@ def reset_game():
 
     game_ended = False
 
-# Game loop
+# Game variables
+score = 0
+lives = 3
+level = 1
+LEVEL_UP_SCORE = 30
+
+auto_fire_cooldown = 0
+AUTO_FIRE_DELAY = 6
+
+game_state = "menu"
 running = True
 game_ended = False
 auto_mode = False
 
 while running:
     screen.fill((0, 0, 0))
-    back()
+    screen.blit(bg, (0, 0))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -247,14 +251,14 @@ while running:
         keys = pygame.key.get_pressed()
 
         if auto_mode:
-            if bullet_state == "ready":
+            auto_fire_cooldown += 1
+            if auto_fire_cooldown >= AUTO_FIRE_DELAY:
                 for i in range(num_enemy):
                     if abs(enemyX[i] - playerX) < 30:
                         bulletSound = mixer.Sound("gallery/laser.wav")
                         bulletSound.play()
-                        bulletX = playerX
-                        bulletY = playerY
-                        bullet_fire(bulletX, bulletY)
+                        player_bullets.append(PlayerBullet(playerX, playerY))
+                        auto_fire_cooldown = 0
                         break
             dodge_direction = 0
             for i in range(num_enemy):
@@ -266,18 +270,17 @@ while running:
                             dodge_direction -= 1
             playerX_change = 0.5 if dodge_direction > 0 else -0.5 if dodge_direction < 0 else 0
         else:
+            playerX_change = 0
             if keys[pygame.K_d]:
                 playerX_change = 0.4
             elif keys[pygame.K_a]:
                 playerX_change = -0.4
-            else:
-                playerX_change = 0
-            if keys[pygame.K_k] and bullet_state == "ready":
-                bulletSound = mixer.Sound("gallery/laser.wav")
-                bulletSound.play()
-                bulletX = playerX
-                bulletY = playerY
-                bullet_fire(bulletX, bulletY)
+
+            if keys[pygame.K_k]:
+                if len(player_bullets) == 0 or (player_bullets and player_bullets[-1].y < playerY - 40):
+                    bulletSound = mixer.Sound("gallery/laser.wav")
+                    bulletSound.play()
+                    player_bullets.append(PlayerBullet(playerX, playerY))
 
         if player_exploding:
             player_explosion_timer += 1
@@ -311,57 +314,44 @@ while running:
                 enemyX_change[i] = -abs(enemyX_change[i])
                 enemyY[i] += enemyY_change[i]
 
-            if isCollision(enemyX, enemyY, bulletX, bulletY, i):
-                explosionSound = mixer.Sound("gallery/explosion.wav")
-                explosionSound.play()
-                trigger_explosion(enemyX[i], enemyY[i])
-                bulletY = 600
-                bullet_state = "ready"
-                enemyX[i] = random.randint(0, 1216)
-                enemyY[i] = random.randint(100, 150)
-                score += 1
-
-                if score > 0 and score % LEVEL_UP_SCORE == 0:
-                    level += 1
-                    new_speed = BASE_ENEMY_SPEED + ENEMY_SPEED_INCREMENT * (level - 1)
-                    new_bullet_speed = BASE_ENEMY_BULLET_SPEED + ENEMY_BULLET_SPEED_INCREMENT * (level - 1)
-
-                    for j in range(num_enemy):
-                        sign = 1 if enemyX_change[j] > 0 else -1
-                        enemyX_change[j] = sign * new_speed
-
-                    enemy_bulletY_change = new_bullet_speed
-
-            if enemyY[i] > 550:
-                lives -= 1
-                enemyX[i] = random.randint(0, 1216)
-                enemyY[i] = random.randint(100, 150)
-                if lives <= 0:
-                    game_ended = True
-                    game_state = "gameover"
-
-            if enemy_bullet_state[i] == "ready" and random.randint(0, 100) < 1:
-                enemy_bullet_fire(enemyX[i], enemyY[i], i)
+            for bullet in player_bullets[:]:
+                if isCollision(enemyX, enemyY, bullet.x, bullet.y, i):
+                    explosionSound = mixer.Sound("gallery/explosion.wav")
+                    explosionSound.play()
+                    trigger_explosion(enemyX[i], enemyY[i])
+                    try:
+                        player_bullets.remove(bullet)
+                    except ValueError:
+                        pass
+                    score += 1
+                    enemyX[i] = random.randint(0, 1216)
+                    enemyY[i] = random.randint(100, 150)
 
             enemyX[i] += enemyX_change[i]
             enemy(enemyX[i], enemyY[i], i)
 
-        if bullet_state == "fire":
-            bullet_fire(bulletX, bulletY)
-            bulletY -= bulletY_change
-            if bulletY <= 0:
-                bulletY = 600
-                bullet_state = "ready"
+            if enemy_bullet_state[i] == "ready" and random.randint(0, 300) < 3:
+                enemy_bullet_fire(enemyX[i], enemyY[i], i)
+
+        for bullet in player_bullets[:]:
+            bullet.move()
+            if not bullet.visible:
+                player_bullets.remove(bullet)
+            else:
+                bullet.draw(screen)
 
         move_enemy_bullets()
         animate_explosions()
         show_stats()
 
+        if score > 0 and score % LEVEL_UP_SCORE == 0:
+            level = score // LEVEL_UP_SCORE + 1
+            for i in range(num_enemy):
+                speed = BASE_ENEMY_SPEED + ENEMY_SPEED_INCREMENT * (level - 1)
+                enemyX_change[i] = speed if enemyX_change[i] > 0 else -speed
+            enemy_bulletY_change = BASE_ENEMY_BULLET_SPEED + ENEMY_BULLET_SPEED_INCREMENT * (level - 1)
+
     elif game_state == "gameover":
-        animate_explosions()
         game_over()
 
     pygame.display.update()
-
-pygame.quit()
-sys.exit()
