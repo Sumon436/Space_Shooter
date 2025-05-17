@@ -15,8 +15,16 @@ pygame.display.set_icon(icon)
 bg = pygame.image.load('gallery/background.jpg')
 
 # Sounds
+mixer.init()
 mixer.music.load("gallery/background.wav")
+mixer.music.set_volume(0.4)  # Background music volume
 mixer.music.play(-1)
+explosionSound = mixer.Sound("gallery/explosion.wav")
+explosionSound.set_volume(0.5)  # Explosion volume
+bulletSound = mixer.Sound("gallery/laser.wav")
+bulletSound.set_volume(0.3)  # 🔉 Bullet volume lowered
+explosion_channel = mixer.Channel(1)
+laser_channel = mixer.Channel(2)
 
 # Fonts
 font = pygame.font.Font("freesansbold.ttf", 32)
@@ -39,7 +47,7 @@ INVINCIBLE_DURATION = 120
 # Explosion animation frames
 explosion_images = [pygame.transform.scale(pygame.image.load(f'gallery/explosion{i}.png'), (128, 128)) for i in range(1, 5)]
 explosions = []
-EXPLOSION_DELAY = 15
+EXPLOSION_DELAY = 30
 
 # Bullet image
 bulletImg = pygame.image.load('gallery/bullet.png')
@@ -48,7 +56,7 @@ class PlayerBullet:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.speed = 8
+        self.speed = 4
         self.visible = True
 
     def move(self):
@@ -108,8 +116,7 @@ def move_enemy_bullets():
                 not player_exploding and player_visible and not invincible):
                 enemy_bullet_state[i] = "ready"
                 trigger_explosion(playerX - 32, playerY - 32)
-                explosionSound = mixer.Sound("gallery/explosion.wav")
-                explosionSound.play()
+                explosion_channel.play(explosionSound)
                 player_visible = False
                 player_exploding = True
                 player_explosion_timer = 0
@@ -143,6 +150,21 @@ def player(x, y):
         if player_visible:
             screen.blit(playerImg, (x - 16, y + 10))
 
+# Game variables
+score = 0
+lives = 3
+level = 1
+LEVEL_UP_SCORE = 30
+
+auto_fire_cooldown = 0
+AUTO_FIRE_DELAY = 6
+
+game_state = "menu"
+running = True
+game_ended = False
+auto_mode = False
+
+# Font functions
 def game_over():
     over_text = font_big.render("GAME OVER", True, (255, 99, 71))
     score_text = font.render(f"Final Score: {score}", True, (255, 255, 255))
@@ -199,20 +221,7 @@ def reset_game():
 
     game_ended = False
 
-# Game variables
-score = 0
-lives = 3
-level = 1
-LEVEL_UP_SCORE = 30
-
-auto_fire_cooldown = 0
-AUTO_FIRE_DELAY = 6
-
-game_state = "menu"
-running = True
-game_ended = False
-auto_mode = False
-
+# Game Loop
 while running:
     screen.fill((0, 0, 0))
     screen.blit(bg, (0, 0))
@@ -255,8 +264,7 @@ while running:
             if auto_fire_cooldown >= AUTO_FIRE_DELAY:
                 for i in range(num_enemy):
                     if abs(enemyX[i] - playerX) < 30:
-                        bulletSound = mixer.Sound("gallery/laser.wav")
-                        bulletSound.play()
+                        laser_channel.play(bulletSound)
                         player_bullets.append(PlayerBullet(playerX, playerY))
                         auto_fire_cooldown = 0
                         break
@@ -278,8 +286,7 @@ while running:
 
             if keys[pygame.K_k]:
                 if len(player_bullets) == 0 or (player_bullets and player_bullets[-1].y < playerY - 40):
-                    bulletSound = mixer.Sound("gallery/laser.wav")
-                    bulletSound.play()
+                    laser_channel.play(bulletSound)
                     player_bullets.append(PlayerBullet(playerX, playerY))
 
         if player_exploding:
@@ -316,9 +323,8 @@ while running:
 
             for bullet in player_bullets[:]:
                 if isCollision(enemyX, enemyY, bullet.x, bullet.y, i):
-                    explosionSound = mixer.Sound("gallery/explosion.wav")
-                    explosionSound.play()
                     trigger_explosion(enemyX[i], enemyY[i])
+                    explosion_channel.play(explosionSound)
                     try:
                         player_bullets.remove(bullet)
                     except ValueError:
