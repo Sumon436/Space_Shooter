@@ -97,8 +97,9 @@ class Game:
             if self.auto_fire_cooldown >= AUTO_FIRE_DELAY:
                 for enemy in self.enemies:
                     if abs(enemy.x - self.player.x) < 30:
-                        self.player_bullets.append(PlayerBullet(self.player.x, self.player.y))
-                        self.laser_channel.play(self.laser_sound)
+                        if self.player.visible:
+                            self.player_bullets.append(PlayerBullet(self.player.x, self.player.y))
+                            self.laser_channel.play(self.laser_sound)
                         self.auto_fire_cooldown = 0
                         break
 
@@ -113,8 +114,9 @@ class Game:
             elif keys[pygame.K_d]: direction = 1
             if keys[pygame.K_k]:
                 if not self.player_bullets or (self.player_bullets and self.player_bullets[-1].y < self.player.y - 40):
-                    self.player_bullets.append(PlayerBullet(self.player.x, self.player.y))
-                    self.laser_channel.play(self.laser_sound)
+                    if self.player.visible:
+                        self.player_bullets.append(PlayerBullet(self.player.x, self.player.y))
+                        self.laser_channel.play(self.laser_sound)
 
         self.player.move(direction)
         self.player.update_invincibility()

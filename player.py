@@ -8,7 +8,7 @@ from settings import (
     PLAYER_SPEED,
     PLAYER_MIN_X,
     PLAYER_MAX_X,
-    INVINCIBLE_DURATION  # Import global invincibility setting
+    INVINCIBLE_DURATION
 )
 
 class Player:
@@ -45,3 +45,6 @@ class Player:
             # Blink effect while invincible
             if not self.invincible or (self.invincible and (self.invincible_timer // 5) % 2 == 0):
                 screen.blit(self.image, (self.x - 16, self.y + 10))
+
+    def is_invincible(self):
+        return self.invincible
